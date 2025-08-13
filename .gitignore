@@ -43,3 +43,4 @@ sketch
 # build output
 dist/
 
+.vscode
