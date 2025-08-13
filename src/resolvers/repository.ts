@@ -28,7 +28,7 @@ export class RepositoryResolver {
   @Query(() => Repository, { nullable: true })
   async repository(@Args() args: FindOneArgs) {
     return Repository.findOne(genOptsFromQuery(
-      Repository, true, remapInput(Version, BaseInputMapOptions, args),
+      true, remapInput(Version, BaseInputMapOptions, args),
     ));
   }
 

@@ -1,8 +1,7 @@
 import { FindManyOptions, FindOptionsWhere } from 'typeorm';
-import { ClassType } from 'type-graphql';
-import { UserInputError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 
-export function genOptsFromQuery<T>(type: T, requireArgs: boolean, where: { [key: string]: any }): FindManyOptions<ClassType<T>> {
+export function genOptsFromQuery<T>(requireArgs: boolean, where: { [key: string]: any }): FindManyOptions<T> {
   let relations: string[] = [];
   let seenArgs = 0;
   for (const key in where) {
@@ -20,7 +19,11 @@ export function genOptsFromQuery<T>(type: T, requireArgs: boolean, where: { [key
   }
 
   if (requireArgs && seenArgs < 1) {
-    throw new UserInputError('At least one argument is required');
+    throw new GraphQLError('At least one argument is required', {
+      extensions: {
+        Code: 'Bad Request',
+      }
+    });
   }
 
   const result: FindManyOptions<T> = {

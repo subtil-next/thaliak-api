@@ -35,14 +35,14 @@ export class PatchResolver {
   @Query(() => [Patch])
   async patches(@Args() args: FindManyArgs) {
     return Patch.find(genOptsFromQuery(
-      Patch, false, remapInput(Patch, RepositoryInputMapOptions, args),
+      false, remapInput(Patch, RepositoryInputMapOptions, args),
     ));
   }
 
   @Query(() => Patch, { nullable: true })
   async patch(@Args() args: FindOneArgs) {
     return Patch.findOne(genOptsFromQuery(
-      Patch, true, remapInput(Patch, RepositoryInputMapOptions, args),
+      true, remapInput(Patch, RepositoryInputMapOptions, args),
     ));
   }
 

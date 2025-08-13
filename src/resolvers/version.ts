@@ -33,14 +33,14 @@ export class VersionResolver {
   @Query(() => [Version])
   async versions(@Args() args: FindManyArgs) {
     return Version.find(genOptsFromQuery(
-      Version, false, remapInput(Version, RepositoryInputMapOptions, args),
+      false, remapInput(Version, RepositoryInputMapOptions, args),
     ));
   }
 
   @Query(() => Version, { nullable: true })
   async version(@Args() args: FindOneArgs) {
     return Version.findOne(genOptsFromQuery(
-      Version, true, remapInput(Version, RepositoryInputMapOptions, args),
+      true, remapInput(Version, RepositoryInputMapOptions, args),
     ));
   }
 

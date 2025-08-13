@@ -1,20 +1,23 @@
 import 'reflect-metadata';
 import 'dotenv/config';
-import { useContainer, DataSource } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { File } from './models/file';
 import { Patch } from './models/patch';
 import { PatchChain } from './models/patchChain';
 import { Repository } from './models/repository';
 import { Version } from './models/version';
-import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
-import { buildSchema } from 'type-graphql';
+
+import { buildSchema, ResolverData } from 'type-graphql';
 import { PatchResolver } from './resolvers/patch';
 import { PatchChainResolver } from './resolvers/patchChain';
 import { FileResolver } from './resolvers/file';
 import { RepositoryResolver } from './resolvers/repository';
 import { VersionResolver } from './resolvers/version';
 import { Container } from 'typedi';
-import { ApolloServer } from 'apollo-server';
+import { ApolloServer } from '@apollo/server';
+import { ApolloServerPluginLandingPageProductionDefault } from '@apollo/server/plugin/landingPage/default';
+import { startStandaloneServer } from '@apollo/server/standalone';
+import { type Context } from "./context";
 
 export const db = new DataSource({
   type: 'postgres',
@@ -39,11 +42,11 @@ async function bootstrap() {
   await db.initialize();
 
   Container.set(DataSource, db);
-  useContainer(Container);
 
   // build graphql schema
   const schema = await buildSchema({
-    container: Container,
+    // Registry custom, scoped IOC container from resolver data function
+    container: ({ context }: ResolverData<Context>) => context.container,
     resolvers: [
       FileResolver,
       PatchResolver,
@@ -57,35 +60,54 @@ async function bootstrap() {
   const port = parseInt(process.env.PORT ?? '4000');
   const server = new ApolloServer({
     schema,
-    cors: { origin: '*' },
+    // cors: { origin: '*' },
     introspection: true,
     plugins: [
-      ApolloServerPluginLandingPageGraphQLPlayground({
-        tabs: [
-          {
-            endpoint: 'https://thaliak.xiv.dev/graphql/',
-            query: `query {
-  repositories {
-    id
-    slug
-    name
-    description
-    latestVersion {
-      versionString
-      firstOffered
-      lastOffered
-    }
-  }
-}
-`,
-          },
-        ],
+      ApolloServerPluginLandingPageProductionDefault({
+        footer: false,
+        graphRef: "",
+        embed: {
+          displayOptions: {
+            docsPanelState: "open",
+            theme: "dark",
+            showHeadersAndEnvVars: false,
+          }
+        },
+//         tabs: [
+//           {
+//             endpoint: 'https://thaliak.xiv.dev/graphql/',
+//             query: `query {
+//   repositories {
+//     id
+//     slug
+//     name
+//     description
+//     latestVersion {
+//       versionString
+//       firstOffered
+//       lastOffered
+//     }
+//   }
+// }
+// `,
+//           },
+//         ],
       }),
     ],
   });
 
-  await server.listen(port);
-  console.log(`🚀 Server ready at http://localhost:${port}${server.graphqlPath}`);
+  const { url } = await startStandaloneServer(server, {
+    context: async () => {
+      const requestId = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER); // uuid-like
+      const container = Container.of(requestId.toString()); // Get scoped container
+      const context = { requestId, container }; // Create context
+      container.set("context", context); // Set context or other data in container
+
+      return context;
+    },
+    listen: { port: port },
+  });
+  console.log(`🚀 Server ready at http://${url}`);
 }
 
 bootstrap();

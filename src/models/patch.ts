@@ -78,6 +78,11 @@ export class Patch extends BaseEntity {
   @Column({ name: 'HashBlockSize', nullable: true })
   public hashBlockSize?: number;
 
+  @Field(() => [String], { nullable: true })
+  @Column({ name: 'Hashes', nullable: true })
+  public hashes?: string[];
+
+
   @Field(() => [PatchChain])
   @OneToMany(() => PatchChain, (c) => c.patch, { lazy: true })
   public prerequisitePatches: Promise<PatchChain[]>;

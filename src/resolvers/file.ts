@@ -2,7 +2,6 @@ import { Arg, Args, ArgsType, Field, FieldResolver, ID, Query, Resolver, Root } 
 import { File } from '../models/file';
 import { Service } from 'typedi';
 import { genOptsFromQuery } from '../util/queryHelpers';
-import { BaseInputMapOptions, remapInput } from '../util/inputRemapping';
 import { Version } from '../models/version';
 
 @ArgsType()
@@ -26,7 +25,7 @@ export class FileResolver {
   @Query(() => [File])
   async files(@Args() args: FindManyArgs) {
     return File.find(
-      genOptsFromQuery(File, false, {
+      genOptsFromQuery(false, {
         ...args
       })
     );
@@ -35,7 +34,7 @@ export class FileResolver {
   @Query(() => File, { nullable: true })
   async file(@Args() { id, ...args }: FindOneArgs) {
     return File.findOne(
-      genOptsFromQuery(File, false, id ? File.decode(id) : args)
+      genOptsFromQuery(false, id ? File.decode(id) : args)
     );
   }
 

@@ -1,4 +1,4 @@
-import { UserInputError } from 'apollo-server-core';
+import { GraphQLError } from 'graphql';
 
 export interface TransparentID {
   dbId: any;
@@ -22,7 +22,7 @@ export const OpaqueID = {
   decode(type: Function | string, opaqueId: string): TransparentID {
     const decoded = this.decodeExtended(type, opaqueId).transparentID;
     if (!isFinite(decoded.dbId)) {
-      throw new UserInputError('Invalid ID provided');
+      throw new GraphQLError('Invalid ID provided');
     }
 
     return decoded;
@@ -32,7 +32,7 @@ export const OpaqueID = {
     const [inputName, param, inputId] = Buffer.from(opaqueId, 'base64').toString().split(':');
     const typeName = typeof type === 'string' ? type : type.name;
     if (inputId === '' || typeName !== inputName) {
-      throw new UserInputError('Invalid ID provided');
+      throw new GraphQLError('Invalid ID provided');
     }
 
     return {
